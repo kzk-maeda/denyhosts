@@ -1,0 +1,26 @@
+FROM ubuntu:16.04
+
+LABEL maintainter="kzk_maeda"
+
+# config ssh
+RUN apt-get update && apt-get install -y openssh-server && apt-get install -y denyhosts \
+    && apt-get install -y rsyslog \
+    && apt-get install -y vim \
+    && mkdir /var/run/sshd \
+    && echo 'root:rootpassws' | chpasswd \
+    && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config \
+    && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config \
+    && sed -i 's/Port 22/Port 2222/' /etc/ssh/sshd_config \
+    && sed -i 's/DENY_THRESHOLD_INVALID = 5/DENY_THRESHOLD_INVALID = 2/' /etc/denyhosts.conf \
+    && sed -i 's/DENY_THRESHOLD_VALID = 10/DENY_THRESHOLD_VALID = 2/' /etc/denyhosts.conf
+COPY ./keys/id_rsa.pub /root/.ssh/authorized_keys
+
+# add user
+RUN useradd ssh_user \
+    && echo 'ssh_user:password' | chpasswd \
+    && echo "ssh_user    ALL=(ALL)       ALL" >> /etc/sudoers
+
+EXPOSE 2222
+COPY startup.sh /startup.sh
+RUN chmod 744 /startup.sh
+CMD ["/startup.sh"]

@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  ssh_server:
+    build:
+      context: .
+      dockerfile: Dockerfile_server
+    ports:
+      - "2222:2222"
+  ssh_node_1:
+    build:
+      context: .
+      dockerfile: Dockerfile_node
+  ssh_node_2:
+    build:
+      context: .
+      dockerfile: Dockerfile_node
