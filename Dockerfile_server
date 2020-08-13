@@ -2,10 +2,12 @@ FROM ubuntu:16.04
 
 LABEL maintainter="kzk_maeda"
 
-# config ssh
+# config instalation
 RUN apt-get update && apt-get install -y openssh-server && apt-get install -y denyhosts \
     && apt-get install -y rsyslog \
     && apt-get install -y vim \
+    && apt-get install -q -y python python-pip wget \
+    && wget https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py \
     && mkdir /var/run/sshd \
     && echo 'root:rootpassws' | chpasswd \
     && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config \
@@ -14,6 +16,13 @@ RUN apt-get update && apt-get install -y openssh-server && apt-get install -y de
     && sed -i 's/DENY_THRESHOLD_INVALID = 5/DENY_THRESHOLD_INVALID = 2/' /etc/denyhosts.conf \
     && sed -i 's/DENY_THRESHOLD_VALID = 10/DENY_THRESHOLD_VALID = 2/' /etc/denyhosts.conf
 COPY ./keys/id_rsa.pub /root/.ssh/authorized_keys
+
+# config awslogs
+ADD ./conf/awslogs.conf ./awslogs.conf
+COPY ./conf/credentials /root/.aws/credentials
+RUN python ./awslogs-agent-setup.py -n -r ap-northeast-1 -c ./awslogs.conf
+ONBUILD ADD ./conf/aws.conf       /var/awslogs/etc/aws.conf
+ONBUILD ADD ./conf/awslogs.conf /var/awslogs/etc/awslogs.conf
 
 # add user
 RUN useradd ssh_user \

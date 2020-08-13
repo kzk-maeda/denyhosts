@@ -1,0 +1,6 @@
+[plugins]
+cwlogs = cwlogs
+
+[profile default]
+aws_access_key_id = AKIAXXXXXXXXXXXX
+aws_secret_access_key = XXXXXXXXXXXXXXXXXXXXXXXXXX
